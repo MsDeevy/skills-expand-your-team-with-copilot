@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("activity-search");
   const searchButton = document.getElementById("search-button");
   const categoryFilters = document.querySelectorAll(".category-filter");
+  const difficultyFilters = document.querySelectorAll(".difficulty-filter");
   const dayFilters = document.querySelectorAll(".day-filter");
   const timeFilters = document.querySelectorAll(".time-filter");
 
@@ -51,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
+  let currentDifficulty = "all";
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
@@ -434,6 +436,16 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(allActivities).forEach(([name, details]) => {
       const activityType = getActivityType(name, details.description);
 
+      // The All difficulty filter shows activities without a specified level.
+      const activityDifficulty = details.difficulty?.toLowerCase();
+      const matchesDifficulty =
+        currentDifficulty === "all"
+          ? !activityDifficulty
+          : activityDifficulty === currentDifficulty;
+      if (!matchesDifficulty) {
+        return;
+      }
+
       // Apply category filter
       if (currentFilter !== "all" && activityType !== currentFilter) {
         return;
@@ -533,6 +545,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    const shareUrl = window.location.origin + window.location.pathname;
+    const shareTitle = `Join ${name} at Mergington High School`;
+    const shareText = `${shareTitle}! ${details.description} (${formattedSchedule})`;
+
     activityCard.innerHTML = `
       ${tagHtml}
       <h4>${name}</h4>
@@ -566,6 +582,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-buttons" aria-label="Share this activity">
+        <span class="share-label">Share:</span>
+        <a class="share-button share-facebook" target="_blank" rel="noopener noreferrer" title="Share on Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}">Facebook</a>
+        <a class="share-button share-x" target="_blank" rel="noopener noreferrer" title="Share on X" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}">X</a>
+        <a class="share-button share-email" title="Share by email" href="mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText + " " + shareUrl)}">Email</a>
+        <button type="button" class="share-button share-copy" title="Copy link">Copy link</button>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -584,6 +607,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       </div>
     `;
+
+    // Copy the text to the clipboard when "Copy link" is clicked
+    const copyButton = activityCard.querySelector(".share-copy");
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        copyButton.textContent = "Copied!";
+      } catch (error) {
+        copyButton.textContent = "Copy failed";
+      }
+      setTimeout(() => (copyButton.textContent = "Copy link"), 2000);
+    });
 
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
@@ -614,6 +649,17 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     searchQuery = searchInput.value;
     displayFilteredActivities();
+  });
+
+  // Add event listeners to difficulty filter buttons
+  difficultyFilters.forEach((button) => {
+    button.addEventListener("click", () => {
+      difficultyFilters.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      currentDifficulty = button.dataset.difficulty;
+      displayFilteredActivities();
+    });
   });
 
   // Add event listeners to category filter buttons
