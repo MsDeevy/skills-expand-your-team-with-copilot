@@ -24,6 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
   const closeLoginModal = document.querySelector(".close-login-modal");
   const loginMessage = document.getElementById("login-message");
+  const themeToggle = document.getElementById("theme-toggle");
+
+  function updateTheme(isDark) {
+    document.body.classList.toggle("dark-mode", isDark);
+    themeToggle.textContent = isDark ? "☀️ Light mode" : "🌙 Dark mode";
+    themeToggle.setAttribute("aria-pressed", isDark);
+  }
+
+  updateTheme(localStorage.getItem("themePreference") === "dark");
+  themeToggle.addEventListener("click", () => {
+    const isDark = !document.body.classList.contains("dark-mode");
+    updateTheme(isDark);
+    localStorage.setItem("themePreference", isDark ? "dark" : "light");
+  });
 
   // Activity categories with corresponding colors
   const activityTypes = {
