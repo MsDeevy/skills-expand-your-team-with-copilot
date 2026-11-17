@@ -519,6 +519,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    const shareUrl = window.location.origin + window.location.pathname;
+    const shareTitle = `Join ${name} at Mergington High School`;
+    const shareText = `${shareTitle}! ${details.description} (${formattedSchedule})`;
+
     activityCard.innerHTML = `
       ${tagHtml}
       <h4>${name}</h4>
@@ -552,6 +556,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-buttons" aria-label="Share this activity">
+        <span class="share-label">Share:</span>
+        <a class="share-button share-facebook" target="_blank" rel="noopener noreferrer" title="Share on Facebook" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}">Facebook</a>
+        <a class="share-button share-x" target="_blank" rel="noopener noreferrer" title="Share on X" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}">X</a>
+        <a class="share-button share-email" title="Share by email" href="mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText + " " + shareUrl)}">Email</a>
+        <button type="button" class="share-button share-copy" title="Copy link">Copy link</button>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -570,6 +581,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       </div>
     `;
+
+    // Copy the text to the clipboard when "Copy link" is clicked
+    const copyButton = activityCard.querySelector(".share-copy");
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        copyButton.textContent = "Copied!";
+      } catch (error) {
+        copyButton.textContent = "Copy failed";
+      }
+      setTimeout(() => (copyButton.textContent = "Copy link"), 2000);
+    });
 
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
